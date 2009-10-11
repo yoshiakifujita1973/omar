@@ -195,6 +195,7 @@ do {
     $#stillgood = -1;
  #   print $#goodcircles, "+1 good circles\n";
     $lowestcircle = 0;
+    $minratio = 7;
     while($circle = pop(@goodcircles)){
       ($votes, $x, $y, $r) = @$circle;
       # let's see how many votes we got in comparison to the radius to find "good" circles
@@ -213,6 +214,7 @@ do {
       }
     }
     @goodcircles = @stillgood;
+  print "still have ", $#goodcircles + 1, " circles\n";
   }
   $minratio = 2 * 3.14159;
   $limit = $limit * 0.90;
