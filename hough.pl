@@ -3,6 +3,11 @@
 use GD;
 
 $circlestofind = $ARGV[1];
+if ($#ARGV < 2){
+  print "Usage: perl hough.pl <file> <number of circles> <minimum radius>\n";
+  exit;
+}
+$minradius = $ARGV[2];
 
 sub max {
   return $_[0]>$_[1]?$_[0]:$_[1];
@@ -10,6 +15,15 @@ sub max {
 
 sub min {
   return $_[0]<$_[1]?$_[0]:$_[1];
+}
+
+sub inspec{
+  my $value = $_[0];
+  my $i = $_[1];
+  my $j = $_[2];
+  my $r = $_[3];
+  my $limit = $_[4];
+  return ($limit < $value / $r);
 }
 
 # This function takes a location in the voting space, looks at its neighbors, and if they are above the
@@ -33,8 +47,8 @@ sub cleararea {
     $marked[$Si][$Sj][$Sr] = 1;
     for(my $i = max(0, $Si - 1); $i <= min($Si + 1, $#searchspace); $i++){
       for(my $j = max(0, $Sj - 1); $j <= min($Sj + 1, $#{$searchspace[$i]}); $j++){
-        for(my $r = max(0, $Sr - 1); $r <= min($Sr + 1, $#{$searchspace[$i][$j]}); $r++){
-          if($searchspace[$i][$j][$r] > $limit && $marked[$i][$j][$r] == 0){
+        for(my $r = max($minradius, $Sr - 1); $r <= min($Sr + 1, $#{$searchspace[$i][$j]}); $r++){
+          if(inspec($searchspace[$i][$j][$r], $i, $j, $r, $limit) && $marked[$i][$j][$r] == 0){
 	    $marked[$i][$j][$r] = 1;
 	    unshift(@searchqueue,[$i, $j, $r]);
 	    if($searchspace[$i][$j][$r] > $max){
@@ -61,8 +75,8 @@ sub findseeds {
 #    print "i = $i and searching j to ", $#{$searchspace[$i]}, "\n";
     for(my $j = 0; $j <= $#{$searchspace[$i]}; $j++) {
 #      print "  j = $j and searching r to ", $#{$searchspace[$i][$j]}, "\n";
-      for(my $r = 3; $r <= $#{$searchspace[$i][$j]}; $r++){
-	if ($searchspace[$i][$j][$r] > $limit && $marked[$i][$j][$r] != 1){
+      for(my $r = $minradius; $r <= $#{$searchspace[$i][$j]}; $r++){
+	if (inspec($searchspace[$i][$j][$r], $i, $j, $r, $limit) && $marked[$i][$j][$r] != 1){
 	  push(@circles, [cleararea(\@searchspace, \@marked, $i, $j, $r, $limit)]);
 #	  ($max, $mi, $mj, $mr) = @$foundcircle;
         }
@@ -160,7 +174,8 @@ print "vote average: $avg; vote STD: $std\n";
 
 # choose a selectivity (in STDs away from the average)
 $selectivity = 3;
-$limit = int($firstzero + $selectivity * $std); # used to do $avg + $selectivity * $std;
+$limit = 0.90 * 2 * 3.14159; # find circles that are 90% full.
+#int($firstzero + $selectivity * $std); # used to do $avg + $selectivity * $std;
 $distance = ($limit - $avg) / $std;
 
 do { 
@@ -175,13 +190,11 @@ do {
   @circles = findseeds(\@searchspace, $limit);
   @goodcircles = @circles;
   print "found ", $#circles + 1, ".  Testing for validity.\n";
-  $minallowedratio = 3;
   # We're going to kick out the worst-fit circles if we found too many.
-  while($#goodcircles + 1 > $circlestofind) {
+  while($#goodcircles + 1 > $circlestofind) {    
     $#stillgood = -1;
  #   print $#goodcircles, "+1 good circles\n";
     $lowestcircle = 0;
-    $minratio = 5;
     while($circle = pop(@goodcircles)){
       ($votes, $x, $y, $r) = @$circle;
       # let's see how many votes we got in comparison to the radius to find "good" circles
@@ -190,18 +203,19 @@ do {
       # if the match is better than our worst match so far keep it
       if($circleratio > $minratio){
         push(@stillgood, $circle);
-      # if it is the worst so far, but is better than the worst we'll accept, store it
-      } elsif($circleratio > $minallowedratio) {
+      # if it is the worst so far, but is better than the worst we'll set it aside so we can drop it at the end.
+      } else {
 	if($lowestcircle != 0){
           push(@stillgood, $lowestcircle);
 	}
         $lowestcircle = $circle;
         $minratio = $circleratio;
-      } # doing nothing drops the circle -- it was a bad match in general!
+      }
     }
     @goodcircles = @stillgood;
   }
-  $limit-=10;
+  $minratio = 2 * 3.14159;
+  $limit = $limit * 0.90;
 #  print "$circlestofind and ", $#goodcircles + 1, "\n";
 } while($circlestofind > $#goodcircles + 1);
 
