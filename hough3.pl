@@ -23,7 +23,29 @@ sub inspec{
   my $j = $_[2];
   my $r = $_[3];
   my $limit = $_[4];
-  return ($limit < $value / $r);
+  return ($limit < $value / $r**2);
+}
+
+
+sub addtosearchspace{
+  my $x = $_[0];
+  my $y = $_[1];
+  my $r = $_[2];
+  if ($x<0 || $y < 0) {
+    return; 
+  }
+# print "adding circle ($x, $y) $r\n";
+  foreach $i (-1..1){
+    foreach $j (-1..1){
+      $searchspace[$x+$i][$y+$j][$r]++;
+      $count = $searchspace[$x+$i][$y+$j][$r];
+      # keeping a histogram of how many points have how many votes might be useful.
+      if($count > 0){
+        $histogram[$count]++;
+        $histogram[$count - 1]--;
+      }
+    }
+  }
 }
 
 # Thanks Wolfram Alpha!  
@@ -117,7 +139,7 @@ $shortside = $width>$height?$height:$width;
 
 # assume the max radius is half of the shorter dimension
 # and square it for comparison purposes (to avoid having to do a square root all the time)
-$maxr = $shortside >> 1;
+$maxr = $shortside / 2;
 
 # Create a 3D array which looks like this:
 # @searchspace[$width][$height][$shortside/2];
@@ -133,13 +155,6 @@ for($x = 0; $x < $width; $x++){
 
 $maxr2 = $maxr * $maxr;
 
-#for($i = 0; $i < $height; $i++){
-#  push @rows, [()];
-#}
-#for($i = 0; $i < $width; $i++){
-#  push @columns, [()];
-#}
-
 # i and j loops iterate through the image
 for($i = 0; $i <= $width; $i++) {
 #  print "$i of $width evaluated $pointsevaluated points\n";
@@ -153,33 +168,36 @@ for($i = 0; $i <= $width; $i++) {
 }
 
 @pointsB = @points;
-foreach $point (@points){
+foreach $pointA (@points){
   pop @pointsB;
   print "points left ", scalar @pointsB, "\n";
-  ($Xa, $Ya) = @$point;
+  ($Xa, $Ya) = @$pointA;
   foreach $pointB (@pointsB){
     ($Xb, $Yb) = @$pointB;
-    if($Xa != $Xb && $Ya != $Yb &&
-       ($Xa - $Xb)**2 + ($Ya - $Yb)**2 < $maxr2){
+    if($Xa != $Xb && $Ya != $Yb && ($Xa - $Xb)**2 + ($Ya - $Yb)**2 < $maxr2){
+      $Xm = ($Xa + $Xb) / 2.0; 
+      $Ym = ($Ya + $Yb) / 2.0;
       # slope of the line containing the center of a circle going through the two points.
       # which is perpendicular to the slop of the line defined by the two points.
-      $m = -($Xa - $Xb) / ($Ya - $Yb);
+      $m = -($Xa - $Xb) * 1.0 / ($Ya - $Yb);
       # the "b" value in y = mx+b;
-      $b = ($Ya + $Yb) >> 1 - $m * ($Xa + $Xb) >> 1;
-      ($minx, $maxx) = getXrange($Xa, $Ya, $m, $b, $maxr);
+      $b = $Ym - $m * $Xm;
+#      print "searching with points ($Xa, $Ya) ($Xb, $Yb) midpoint ($Xm, $Ym) line y = $m*x+$b\n";
+#      print "$Xa $Ya $Xb $Yb $m $b $maxr\n";
+#      ($minx, $maxx) = getXrange($Xa, $Ya, $m, $b, $maxr);
 #      print "adding circles from $minx to $maxx\n";
-      for($Xc = max($minx,0); $Xc < min($maxx,$width); $Xc++){
-        $Yc = $m * $Xc + $b;
-        if($Yc > 0 && $Yc < $height) {
-          $r = sqrt(($Xc - $Xa)**2 + ($Yc - $Ya)**2);
-#         print "adding circle ($Xc, $Yc) $r\n";
-          $searchspace[$Xc][$Yc][$r]++;
-          $count = $searchspace[$Xc][$Yc][$r];
-          # keeping a histogram of how many points have how many votes might be useful.
-   	  if($count > 0){
-            $histogram[$count]++;
-	    $histogram[$count - 1]--;
-	  }
+      $r = sqrt(($Xa - $Xb)**2 + ($Ya - $Yb)**2);
+      for($Xc = 1; $r<$maxr; $Xc++){
+	$Xd = int($Xm + $Xc);
+	$Xe = int($Xm - $Xc);
+        $Yd = $m * $Xd + $b;
+	$Ye = $m * $Xe + $b;
+        $r = sqrt(($Xd - $Xa)**2 + ($Yd - $Ya)**2);
+        if($Yd > 0 && $Yd < $height) {
+#          print "bad! $Xa $Ya $Xb $Yb $m $b $r\n" if($Xd == 22 && $Yd == 22 && $r == 5);
+#          print "good! $Xa $Ya $Xb $Yb $m $b $r\n" if($Xd == 50 && $Yd == 50);
+	  addtosearchspace($Xd, $Yd, $r);
+          addtosearchspace($Xe, $Ye, $r);
         }
       }
     } 
