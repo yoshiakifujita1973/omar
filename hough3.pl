@@ -26,6 +26,25 @@ sub inspec{
   return ($limit < $value / $r);
 }
 
+# Thanks Wolfram Alpha!  
+# This returns the  x values that a circle bisected a line j = m*i+b and 
+# whose edge contains the point (x, y) has when the circle has a radius of maxr.
+sub getXrange{
+  my $x = $_[0];
+  my $y = $_[1];
+  my $m = $_[2];
+  my $b = $_[3];
+  my $r = $_[4];
+  my $minx = (-sqrt(-$b**2 - 2*$b*$m*$x + 2*$b*$y + $m**2*$r**2 - $m**2*$x**2 + 2*$m*$x*$y + $r**2
+                 - $y**2)
+           - $b*$m+$m*$y + $x)/($m**2 + 1);
+  my $maxx = (sqrt(-$b**2 - 2*$b*$m*$x + 2*$b*$y + $m**2*$r**2 - $m**2*$x**2 + 2*$m*$x*$y + $r**2
+                 - $y**2)
+           - $b*$m+$m*$y + $x)/($m**2 + 1);
+  return ($minx, $maxx);
+}
+
+
 # This function takes a location in the voting space, looks at its neighbors, and if they are above the
 # threshold and not yet marked, adds them to the evaluation queue
 sub cleararea {
@@ -114,46 +133,68 @@ for($x = 0; $x < $width; $x++){
 
 $maxr2 = $maxr * $maxr;
 
+#for($i = 0; $i < $height; $i++){
+#  push @rows, [()];
+#}
+#for($i = 0; $i < $width; $i++){
+#  push @columns, [()];
+#}
+
 # i and j loops iterate through the image
 for($i = 0; $i <= $width; $i++) {
-  print "$i of $width evaluated $pointsevaluated points\n";
-  $lastk = min($i + $maxr,($width + $i) >> 1);
+#  print "$i of $width evaluated $pointsevaluated points\n";
   for($j = 0; $j <= $height; $j++) {
     $pix = $im->getPixel($i,$j);
     if ($pix == 1){
-      $pointsevaluated++;
-      $lastl = min($j + $maxr, ($height + $j) >> 1);
-      # k and l loops iterate through centerpoints at a given "hot" pixel
-      for($k = max($i >> 1, $i - $maxr); $k < $lastk; $k++){
-        $x = $i - $k;
-	$x2 = $x * $x;
-	for($l = max(0$i >> 1, $j - $maxr); $l < $lastl; $l++){
-          $y = $j - $l;
-          $rsquared = $x2 + $y * $y;
-	  if ($rsquared < $maxr2) {
-	    # find the radius and vote at position k, l, r
-            $r = int(sqrt($rsquared)+0.5);
-	    if($r > 0){
-              $searchspace[$k][$l][$r]++;
-              $count = $searchspace[$k][$l][$r];
-            }
-            # keeping a histogram of how many points have how many votes might be useful.
-   	    if($count > 0 && $r > 0){
-	      $histogram[$count]++;
-	      $histogram[$count - 1]--;
-	    }
+	$pointsevaluated++;
+	push(@points, [($i, $j)]);
+   }
+  }
+}
+
+@pointsB = @points;
+foreach $point (@points){
+  pop @pointsB;
+  print "points left ", scalar @pointsB, "\n";
+  ($Xa, $Ya) = @$point;
+  foreach $pointB (@pointsB){
+    ($Xb, $Yb) = @$pointB;
+    if($Xa != $Xb && $Ya != $Yb &&
+       ($Xa - $Xb)**2 + ($Ya - $Yb)**2 < $maxr2){
+      # slope of the line containing the center of a circle going through the two points.
+      # which is perpendicular to the slop of the line defined by the two points.
+      $m = -($Xa - $Xb) / ($Ya - $Yb);
+      # the "b" value in y = mx+b;
+      $b = ($Ya + $Yb) >> 1 - $m * ($Xa + $Xb) >> 1;
+      ($minx, $maxx) = getXrange($Xa, $Ya, $m, $b, $maxr);
+#      print "adding circles from $minx to $maxx\n";
+      for($Xc = max($minx,0); $Xc < min($maxx,$width); $Xc++){
+        $Yc = $m * $Xc + $b;
+        if($Yc > 0 && $Yc < $height) {
+          $r = sqrt(($Xc - $Xa)**2 + ($Yc - $Ya)**2);
+#         print "adding circle ($Xc, $Yc) $r\n";
+          $searchspace[$Xc][$Yc][$r]++;
+          $count = $searchspace[$Xc][$Yc][$r];
+          # keeping a histogram of how many points have how many votes might be useful.
+   	  if($count > 0){
+            $histogram[$count]++;
+	    $histogram[$count - 1]--;
 	  }
         }
       }
-    }
+    } 
   }
 }
+
+#print "Not looking for anything, exiting here\n";
+#exit;
 
 print "$pointsevaluated points evaluated\n";
 
 $histogram[0]=0;
 for($i = 1; $i <= $#histogram; $i++){
   $sumXi += $i * $histogram[$i];
+#  print "$i ", $histogram[$i], "\n";
   $n += $histogram[$i];
   $sumXisqrd += $i*$i*$histogram[$i];
   # let's record the first place in the histogram with zero votes, and start looking above that.
@@ -174,7 +215,7 @@ print "vote average: $avg; vote STD: $std\n";
 
 # choose a selectivity (in STDs away from the average)
 $selectivity = 3;
-$limit = 0.50 * 2 * 3.14159; # find circles that are 90% full.
+$limit = 0.90 * 2 * 3.14159; # find circles that are 90% full.
 #int($firstzero + $selectivity * $std); # used to do $avg + $selectivity * $std;
 $distance = ($limit - $avg) / $std;
 
@@ -191,16 +232,19 @@ do {
   @goodcircles = @circles;
   print "found ", $#circles + 1, ".  Testing for validity.\n";
   # We're going to kick out the worst-fit circles if we found too many.
+  $maxratio = 1;
   while($#goodcircles + 1 > $circlestofind) {    
     $#stillgood = -1;
  #   print $#goodcircles, "+1 good circles\n";
     $lowestcircle = 0;
-    $minratio = 7;
+    $minratio = $maxratio;
     while($circle = pop(@goodcircles)){
       ($votes, $x, $y, $r) = @$circle;
       # let's see how many votes we got in comparison to the radius to find "good" circles
       # 1 = ca 30%, 2 = ca 60%, pi = 100%
       $circleratio = $votes/$r;
+#      print "$circleratio > $minratio is good? "; 
+      $maxratio = ($circleratio > $maxratio)?$circleratio:$maxratio;
       # if the match is better than our worst match so far keep it
       if($circleratio > $minratio){
         push(@stillgood, $circle);
@@ -214,7 +258,7 @@ do {
       }
     }
     @goodcircles = @stillgood;
-  print "still have ", $#goodcircles + 1, " circles\n";
+    print "still have ", $#goodcircles + 1, " circles\n";
   }
   $minratio = 2 * 3.14159;
   $limit = $limit * 0.90;
@@ -226,9 +270,10 @@ foreach $circle (@goodcircles) {
   print "circle found at $x, $y with radius $r and $max votes\n";
 }
 
+print "convert $ARGV[0] -fill none -stroke red -strokewidth 1 ";
 foreach $circle (@goodcircles) {
   ($max, $x, $y, $r) = @$circle;
   print "-draw 'circle $x, $y ", $x - $r, ", $y' ";
 }
-print "\n";
+print "found.png\n";
 
