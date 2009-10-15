@@ -1,6 +1,7 @@
 #include<vector>
 #include<queue>
 #include<list>
+#include<map>
 #include<Magick++.h>
 #include<iostream>
 #include<math.h>
@@ -63,9 +64,9 @@ void vote(int a, int b, int r, int maxA,
     for(int j = MAX(0, b-1); j <= MIN(maxB, b+1); j++){
       for(int k = MAX(0, r-1); k <= MIN(maxR, r+1); k++){
 	if (votes->size() < i) votes->resize(i);
-	if (votes[i]->size() < j) votes[i]->resize(j);
-	if (votes[i][j]->size() < k) {
-	  votes[i][j]->resize(k);
+	if ((*votes)[i].size() < j) (*votes)[i].resize(j);
+	if ((*votes)[i][j].size() < k) {
+	  (*votes)[i][j].resize(k);
 	  (*votes)[i][j][k] = 0;
 	}
 	(*votes)[i][j][k]++;
@@ -79,7 +80,7 @@ void vote(int a, int b, int r, int maxA,
  * return the 3d array of the votes (x and y position, and radius) 
  */
 vector<vector<vector< int > > >  electCircles(vector<Point> *points,
-					      int maxRadius, 
+					      int minRadius, int maxRadius, 
 					      Point lowerRightCorner) {
   vector<vector<vector< int > > > votes;
   int maxA = lowerRightCorner.getX();
@@ -89,11 +90,12 @@ vector<vector<vector< int > > >  electCircles(vector<Point> *points,
     int i = p->getX();
     int j = p->getY();
     /* vote for expanding circles around that point */
-    for(int r = MINRADIUS; r <= maxRadius; r++){
+    for(int r = minRadius; r <= maxRadius; r++){
       int a = r;
+      int b = 0;
       /* get pairs of values a, b that are on a circle of radius r */
       do{
-	int b = sqrt((r^2) - ((a)^2));
+	b = sqrt((r^2) - ((a)^2));
 	/* vote for the eight points on this circle that are offset
 	   from the center by a combination of a and b -- the reflections
 	   on the axes centered at the circle's center */
@@ -140,7 +142,7 @@ Circle clearArea(int x, int y, int r, vector<vector<vector< bool > > > *marked,
   circlesToCheck.push(returnCircle);
 
   /* the first circle has the best value we've seen so far, so record it! */
-  int maxCircleValue = circlevalue(returnCircle, (*votes)[x][y][r]);
+  int maxCircleValue = circleValue(returnCircle, (*votes)[x][y][r]);
 
   /* while there are still circles left to check */
   while(!circlesToCheck.empty()){
@@ -153,8 +155,8 @@ Circle clearArea(int x, int y, int r, vector<vector<vector< bool > > > *marked,
     int r = currentCircle.getRadius();
     /* get the boundries for its position and radius! */
     int maxA = votes->size();
-    int maxB = votes[a]->size();
-    int maxR = votes[a][b]->size();
+    int maxB = (*votes)[a].size();
+    int maxR = (*votes)[a][b].size();
     /* go through this circle's neighbors in the vote space */
     for(int i = MAX(0, a-1); i <= MIN(maxA, a+1); i++){
       for(int j = MAX(0, b-1); j <= MIN(maxB, b+1); j++){
@@ -162,7 +164,7 @@ Circle clearArea(int x, int y, int r, vector<vector<vector< bool > > > *marked,
 	  /* get their relavant data */
 	  Point tempPoint = Point(i, j);
 	  Circle newCircle = Circle(tempPoint, k);
-	  double weight = circleValue(newCircle, votes[i][j][k]);
+	  double weight = circleValue(newCircle, (*votes)[i][j][k]);
 	  /* and mark them and queue them up if they're unmarked and
 	     above the threshold */
 	  if((*marked)[i][j][k] == false && weight > threshold){
@@ -187,40 +189,71 @@ Circle clearArea(int x, int y, int r, vector<vector<vector< bool > > > *marked,
  * the threshold will be considered one circle.  We will use the one with
  * the highest heuristic value.
  */
-vector<Circle> chooseWinners(const vector<vector<vector< int > > > votes,
+multimap<double,Circle> chooseWinners(vector<vector<vector< int > > > *votes,
 			     double threshold){
   vector<vector<vector< bool> > > marked;
-  vector<Circle> circleList;
+  multimap<double, Circle> circleList;
 
   /* clear the circles we've seen */
-  marked.resize(votes.size());
-  for(int i = 0; i < votes.size(); i++){
-    marked[i].resize(votes[i].size());
-    for(int j = 0; j < votes[i].size(); j++){
-      marked[i][j].resize(votes[i][j].size());
-      for(int r = 0; r < votes[i][j].size(); r++){
+  marked.resize(votes->size());
+  for(int i = 0; i < votes->size(); i++){
+    marked[i].resize((*votes)[i].size());
+    for(int j = 0; j < (*votes)[i].size(); j++){
+      marked[i][j].resize((*votes)[i][j].size());
+      for(int r = 0; r < (*votes)[i][j].size(); r++){
 	marked[i][j][r] = false;
       }
     }
   }
 
   /* iterate through the votespace */
-  for(int i = 0; i < votes.size(); i++){
-    for(int j = 0; j < votes[i].size(); j++){
-      for(int r = 0; r < votes[i][j].size(); r++){
+  for(int i = 0; i < votes->size(); i++){
+    for(int j = 0; j < (*votes)[i].size(); j++){
+      for(int r = 0; r < (*votes)[i][j].size(); r++){
 	Point circleCenter = Point(i, j);
 	Circle circle = Circle(circleCenter, r);
-	int value = circleValue(circle, votes[i][j][r]);
+	int value = circleValue(circle, (*votes)[i][j][r]);
 	/* if we find a circle with a heursitic above the threshold 
 	   that hasn't already been counted in a cluster then find the cluster
 	   and add the circle with the best heuristic in the cluster to
 	   our list */
 	if(value > threshold && marked[i][j][r] == false){
 	  marked[i][j][r] = true;
-	  circleList.push_back(clearArea(i, j, r, &marked, &votes, threshold));
+	  Circle circleToAdd = clearArea(i, j, r, &marked, votes, threshold);
+	  pair<double, Circle> pairToAdd 
+	    = pair<double, Circle>(value, circleToAdd);
+	  circleList.insert(pairToAdd);
+
 	}
       }
     }
   }
   return circleList;
+}
+
+
+/* the big event, the thing people are supposed to call from outside
+ * takes an image with its edges already found and thresholded, the 
+ * number of circles to find, their minimum and maximum radii, and 
+ * returns a vector with that many circles in it.
+ */
+vector<Circle> findCircles(Image image, int numberOfCircles,
+			   int minRadius, int maxRadius){
+  vector<Point> points = getPoints(image);
+  Point lowerRightCorner = Point(image.rows(), image.columns());
+  vector<vector<vector< int > > > votes 
+    = electCircles(&points, minRadius, maxRadius, lowerRightCorner);
+  multimap<double, Circle> circleMap;
+  for(double threshold = 1; circleMap.size() < numberOfCircles; 
+      threshold -= 0.01){
+    circleMap = chooseWinners(&votes, threshold);
+  }
+
+  vector<Circle> circlesToReturn;
+  for(multimap<double, Circle>::iterator it = circleMap.begin();
+      it != circleMap.end() && circlesToReturn.size() < numberOfCircles;
+      it++){
+    circlesToReturn.push_back(it->second);
+  }
+  return circlesToReturn;
 }

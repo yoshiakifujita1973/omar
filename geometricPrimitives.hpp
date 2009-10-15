@@ -1,3 +1,6 @@
+#ifndef GEOMETRICPRIMITIVES_HPP
+#define GEOMETRICPRIMITIVES_HPP
+
 #define GP_LINE_CARTESIAN 0x1
 #define GP_LINE_POLAR 0x2
 
@@ -68,3 +71,6 @@ private:
   double m;
   double b;
 };
+
+
+#endif
