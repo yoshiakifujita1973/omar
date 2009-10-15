@@ -1,12 +1,19 @@
-INCLUDEPATH = -I/usr/share/lib
+INCLUDEPATH = 
 MAGICKFLAGS = `Magick++-config --cppflags --cxxflags --ldflags --libs`
+C++ = g++
 
-hough.o: geometricPrimitives.o hough.cpp hough.hpp
-	g++ -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o hough.o hough.cpp \
-		geometricPrimitives.o
+circlefinder: main.o hough.o geometricPrimitives.o
+	$(C++) -g $(MAGICKFLAGS) main.o hough.o geometricPrimitives.o \
+		-o circlefinder
+
+main.o: geometricPrimitives.hpp hough.hpp main.cpp
+	$(C++) -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o main.o main.cpp
+
+hough.o: geometricPrimitives.hpp hough.cpp hough.hpp
+	$(C++) -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o hough.o hough.cpp
 
 geometricPrimitives.o: geometricPrimitives.cpp geometricPrimitives.hpp
-	g++ -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o geometricPrimitives.o \
+	$(C++) -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o geometricPrimitives.o \
 		geometricPrimitives.cpp
 
 clean:
