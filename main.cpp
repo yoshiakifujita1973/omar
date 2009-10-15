@@ -1,4 +1,4 @@
-#include<stdlib.h>
+#include<stdio.h>
 #include<vector>
 #include<unistd.h>
 //#include<stdlib>
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
 
   opterr = 0;
 
-  while((c = getopt(argc, argv, "nxc:")) != -1){
+  while((c = getopt(argc, argv, "n:x:c:")) != EOF){
     switch (c){
     case 'n':
       minRadius = atoi(optarg);
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
       if (optopt == 'n' || optopt == 'x' || optopt == 'c')
 	cerr << "Option -" << optopt << " requires an argument!\n";
       else if (isprint(optopt))
-	cerr << "Unknown option -" << optopt << endl;
+	cerr << "Unknown option -" << char(optopt) << endl;
       else 
 	cerr << "Unknown option character" << endl;
       return 1;
@@ -48,16 +48,22 @@ int main(int argc, char *argv[]){
       abort();
     }
   }
-  for (int index = optind; index < argc; index++){
-    filename = argv[index];
-    Magick::Image image;
-    try {
-      image.read(filename);
-    } 
-    catch(Magick::Exception &error_) {
-      cout << "Caught on file \"" << filename << "\". Exception: " 
-	   << error_.what() << endl;
-    } 
+
+  if(maxRadius == 0 || minRadius == 0 || numberOfCircles == 0 
+     || optind == argc){
+    cerr << "Usage: " << endl;
+    cerr << argv[0] << " -n <minimum radius> -x <maximum radius> -c <number of circles> <picture file>" << endl;
+    return 1;
   }
+  
+  filename = argv[optind];
+  Magick::Image image;
+  try {
+    image.read(filename);
+  } 
+  catch(Magick::Exception &error_) {
+    cout << "Caught on file \"" << filename << "\". Exception: " 
+	 << error_.what() << endl;
+  } 
 
 }
