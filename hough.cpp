@@ -4,7 +4,7 @@
 #include<Magick++.h>
 #include<iostream>
 #include<math.h>
-#include"geometricPrimatives.hpp"
+#include"geometricPrimitives.hpp"
 #include"hough.hpp"
 
 #define MIN(x, y) ((x)>(y)?(y):(x))

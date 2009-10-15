@@ -1,4 +1,4 @@
-#include "geometricPrimatives.hpp"
+#include "geometricPrimitives.hpp"
 #include<ostream>
 #include<math.h>
 
