@@ -182,10 +182,6 @@ foreach $pointA (@points){
       $m = -($Xa - $Xb) * 1.0 / ($Ya - $Yb);
       # the "b" value in y = mx+b;
       $b = $Ym - $m * $Xm;
-#      print "searching with points ($Xa, $Ya) ($Xb, $Yb) midpoint ($Xm, $Ym) line y = $m*x+$b\n";
-#      print "$Xa $Ya $Xb $Yb $m $b $maxr\n";
-#      ($minx, $maxx) = getXrange($Xa, $Ya, $m, $b, $maxr);
-#      print "adding circles from $minx to $maxx\n";
       $r = sqrt(($Xa - $Xb)**2 + ($Ya - $Yb)**2);
       for($Xc = 1; $r<$maxr; $Xc++){
 	$Xd = int($Xm + $Xc);
@@ -194,8 +190,6 @@ foreach $pointA (@points){
 	$Ye = $m * $Xe + $b;
         $r = sqrt(($Xd - $Xa)**2 + ($Yd - $Ya)**2);
         if($Yd > 0 && $Yd < $height) {
-#          print "bad! $Xa $Ya $Xb $Yb $m $b $r\n" if($Xd == 22 && $Yd == 22 && $r == 5);
-#          print "good! $Xa $Ya $Xb $Yb $m $b $r\n" if($Xd == 50 && $Yd == 50);
 	  addtosearchspace($Xd, $Yd, $r);
           addtosearchspace($Xe, $Ye, $r);
         }
