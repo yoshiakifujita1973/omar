@@ -1,7 +1,8 @@
+#include<stdlib.h>
 #include<vector>
 #include<unistd.h>
 //#include<stdlib>
-#include<ostream>
+#include<iostream>
 #include<Magick++.h>
 #include"geometricPrimitives.hpp"
 #include"hough.hpp"
@@ -9,8 +10,8 @@
 using namespace std;
 //using namespace Magick;
 
-extern ostream cerr;
-extern ostream cout;
+//extern ostream cerr;
+//extern ostream cout;
 
 
 int main(int argc, char *argv[]){
@@ -35,7 +36,7 @@ int main(int argc, char *argv[]){
       break;
     case '?':
       if (optopt == 'n' || optopt == 'x' || optopt == 'c')
-	cerr << "Option -"<< optopt << " requires an argument!\n";
+	cerr << "Option -" << optopt << " requires an argument!\n";
       else if (isprint(optopt))
 	cerr << "Unknown option -" << optopt << endl;
       else 
