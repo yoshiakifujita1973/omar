@@ -1,9 +1,10 @@
 #include "geometricPrimitives.hpp"
-#include<ostream>
+#include<stdlib.h>
+#include<iostream>
 #include<math.h>
 
 using namespace std;
-extern ostream cerr;
+//extern ostream cerr;
 
 Point::Point(){
 
