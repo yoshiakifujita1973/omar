@@ -42,8 +42,8 @@ vector<Point> getPoints( Image image ){
   for (unsigned int row = 0; row < height; row++){ 
     for (unsigned int column = 0; column < width; column++){
       /* White pixels are set to true */
-      if (image.pixelColor(row, column) == white){
-	retval.push_back(Point(row, column));
+      if (image.pixelColor(column, row) == white){
+	retval.push_back(Point(column, row));
       }
     }
   }
