@@ -11,8 +11,8 @@
 
 #define MIN(x, y) ((x)>(y)?(y):(x))
 #define MAX(x, y) ((x)>(y)?(x):(y))
-#define MAXVALUE 900
-#define THRESHOLDSTEP 5
+#define MAXVALUE 5
+#define THRESHOLDSTEP 0.1
 
 using namespace std;
 using namespace Magick;
@@ -131,7 +131,7 @@ vector<vector<vector< int > > >  electCircles(vector<Point> *points,
  * 1 if every point on the circle cast a vote for that circle 
  */
 double circleValue(Circle circle, int votes){
-  return votes ;/// circle.getCircumference();
+  return votes / circle.getCircumference();
 }
 
 /* take a seed point in the vote space, and find all its neighbors that are
@@ -263,7 +263,8 @@ vector<Circle> findCircles(Image image, int numberOfCircles,
   multimap<double, Circle> circleMap;
   /* chose the winners  keep declining the threshold until we get 
      enough circles */
-  for(double threshold = MAXVALUE; circleMap.size() < numberOfCircles; 
+  for(double threshold = MAXVALUE; 
+      circleMap.size() < numberOfCircles && threshold > 0; 
       threshold -= THRESHOLDSTEP){
     circleMap = chooseWinners(&votes, threshold);
   }
