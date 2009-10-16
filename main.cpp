@@ -62,8 +62,21 @@ int main(int argc, char *argv[]){
     image.read(filename);
   } 
   catch(Magick::Exception &error_) {
-    cout << "Caught on file \"" << filename << "\". Exception: " 
+    cerr << "Exception caught on file \"" << filename << "\". Exception: " 
 	 << error_.what() << endl;
   } 
+
+  vector<Circle> circles 
+    = findCircles(image, numberOfCircles, minRadius, maxRadius);
+
+  vector<Circle>::iterator it;
+  cout << "convert " << filename << " -fill none -stroke red -strokewidth 1 ";
+  for(it = circles.begin(); it != circles.end(); it++){
+    cout << "-draw 'circle " << it->getCenter().getX() << "," 
+	 << it->getCenter().getY() << " " 
+	 << it->getCenter().getX() - it->getRadius() << "," 
+	 << it->getCenter().getY() << "' ";
+  }
+  cout << endl;
 
 }
