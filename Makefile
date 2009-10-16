@@ -6,7 +6,7 @@ circlefinder: circlefinder.o hough.o geometricPrimitives.o
 	$(C++) -g $(MAGICKFLAGS) circlefinder.o hough.o geometricPrimitives.o \
 		-o circlefinder
 
-circlefinder.o: geometricPrimitives.hpp hough.hpp main.cpp
+circlefinder.o: geometricPrimitives.hpp hough.hpp circlefinder.cpp
 	$(C++) -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o circlefinder.o \
 		circlefinder.cpp
 
