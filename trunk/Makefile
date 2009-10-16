@@ -2,7 +2,7 @@ INCLUDEPATH =
 MAGICKFLAGS = `Magick++-config --cppflags --cxxflags --ldflags --libs`
 C++ = g++
 
-circlefinder: main.o hough.o geometricPrimitives.o
+circlefinder: circlefinder.o hough.o geometricPrimitives.o
 	$(C++) -g $(MAGICKFLAGS) circlefinder.o hough.o geometricPrimitives.o \
 		-o circlefinder
 
