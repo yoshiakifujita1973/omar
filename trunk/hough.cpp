@@ -255,7 +255,7 @@ vector<Circle> findCircles(Image image, int numberOfCircles,
   vector<Point> points = getPoints(image);
 
   /* get the lower right corner, so we know how high to go */
-  Point lowerRightCorner = Point(image.rows(), image.columns());
+  Point lowerRightCorner = Point(image.columns(), image.rows());
 
   /* hold the elections for circles */
   vector<vector<vector< int > > > votes 
