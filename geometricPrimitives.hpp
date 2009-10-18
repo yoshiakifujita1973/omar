@@ -21,6 +21,8 @@ public:
   bool isOnLine(Line);
   bool isOnEdge(Circle);
 
+  void print();
+
   Point operator=(const Point &);
   bool operator==(const Point &);
 
@@ -39,6 +41,8 @@ public:
   Point getCenter();
   double getArea();
   bool contains(Point);
+  
+  void print();
 
   bool operator==(const Circle &);
 

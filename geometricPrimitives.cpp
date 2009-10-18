@@ -37,12 +37,19 @@ double Point::getTheta(){
 }
 
 double Point::distanceFrom(Point other){
-  return sqrt((this->xCoordinate - other.xCoordinate)^2 + 
-	      (this->yCoordinate - other.yCoordinate)^2);
+  int a = (this->xCoordinate - other.xCoordinate);
+  int a2 = a*a;
+  int b = (this->yCoordinate - other.yCoordinate);
+  int b2 = b*b;
+  return sqrt(a2 + b2);
 }
 
 bool Point::isOnLine(Line line){
   return line.pointOnLine(*this);
+}
+
+void Point::print(){
+  cout << "(" << this->getX() << ", " << this->getY() << ")" << endl;
 }
 
 bool Point::operator==(const Point &other){
@@ -89,6 +96,11 @@ double Circle::getArea(){
 
 bool Circle::contains(Point point){
   return (this->center.distanceFrom(point) < this->radius);
+}
+
+void Circle::print() {
+  cout << "Circle at (" << this->center.getX() << ", " << this->center.getY()
+       << ") with radius " << this->radius << endl;
 }
 
 bool Circle::operator==(const Circle &other){
