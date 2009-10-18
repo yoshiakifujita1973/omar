@@ -90,24 +90,32 @@ vector<vector<vector< int > > >  electCircles(vector<Point> *points,
   vector<vector<vector< int > > > votes;
   int maxA = lowerRightCorner.getX();
   int maxB = lowerRightCorner.getY();
+  vector<vector<int> > coneSlice;
+  for(int r = minRadius; r <= maxRadius; r++){
+    if(coneSlice.size() <= r) coneSlice.resize(r+1);
+    int b = r;
+    int r2 = r*r;
+     for(int a = 0; a < b; a++){
+      if(coneSlice[r].size() <= a) coneSlice[r].resize(a+1);
+      b = (sqrt(r2 - a*a) + 0.5);
+      coneSlice[r][a] = b;
+    }
+  }
   /* iterate through the points */
   for(vector<Point>::iterator p = points->begin(); p != points->end(); ++p){
     int i = p->getX();
     int j = p->getY();
     /* vote for expanding circles around that point */
     for(int r = minRadius; r <= maxRadius; r++){
-      int b = 0;
-      int r2 = r*r;
-
       /* vote for the corners of the circles */
       vote(i + r, j, r, maxA, maxB, maxRadius, &votes);
       vote(i - r, j, r, maxA, maxB, maxRadius, &votes);
       vote(i, j + r, r, maxA, maxB, maxRadius, &votes);
       vote(i, j - r, r, maxA, maxB, maxRadius, &votes);
-
+      
       /* get pairs of values a, b that are on a circle of radius r */
-      for(int a = r - 1; a >= b; a--){
-	b = sqrt(r2 - a*a);
+      for(int a = 1; a < coneSlice[r].size(); a++){
+	int b = coneSlice[r][a];
 	/* vote for the eight points on this circle that are offset
 	   from the center by a combination of a and b -- the reflections
 	   on the axes centered at the circle's center */
@@ -119,7 +127,6 @@ vector<vector<vector< int > > >  electCircles(vector<Point> *points,
 	vote(i - b, j + a, r, maxA, maxB, maxRadius, &votes);
 	vote(i + b, j - a, r, maxA, maxB, maxRadius, &votes);
 	vote(i - b, j - a, r, maxA, maxB, maxRadius, &votes);
-	a--;
       }
     }
   }
@@ -253,7 +260,6 @@ vector<Circle> findCircles(Image image, int numberOfCircles,
 
   /* collect the points in the image (white ones!) */
   vector<Point> points = getPoints(image);
-
   /* get the lower right corner, so we know how high to go */
   Point lowerRightCorner = Point(image.columns(), image.rows());
 
@@ -268,7 +274,6 @@ vector<Circle> findCircles(Image image, int numberOfCircles,
       threshold -= THRESHOLDSTEP){
     circleMap = chooseWinners(&votes, threshold);
   }
-
   vector<Circle> circlesToReturn;
 
   /* if we got too many circles, cut out the ones with the lowest 
