@@ -1,5 +1,8 @@
+
 #ifndef GEOMETRICPRIMITIVES_HPP
 #define GEOMETRICPRIMITIVES_HPP
+
+#include<Magick++.h>
 
 #define GP_LINE_CARTESIAN 0x1
 #define GP_LINE_POLAR 0x2
@@ -42,6 +45,8 @@ public:
   double getArea();
   bool contains(Point);
   
+  Magick::DrawableCircle toDrawable();
+
   void print();
 
   bool operator==(const Circle &);

@@ -1,5 +1,5 @@
 INCLUDEPATH = 
-MAGICKFLAGS = `GraphicsMagick++-config --cppflags --cxxflags --ldflags --libs`
+MAGICKFLAGS = `Magick++-config --cppflags --cxxflags --ldflags --libs`
 C++ = g++
 
 all: circlefinder orientpage
