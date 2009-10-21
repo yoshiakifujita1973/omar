@@ -98,6 +98,13 @@ bool Circle::contains(Point point){
   return (this->center.distanceFrom(point) < this->radius);
 }
 
+Magick::DrawableCircle Circle::toDrawable(){
+  int x = this->getCenter().getX();
+  int y = this->getCenter().getY();
+  int r = this->getRadius();
+  return Magick::DrawableCircle(x,y, x-r,y);
+}
+
 void Circle::print() {
   cout << "Circle at (" << this->center.getX() << ", " << this->center.getY()
        << ") with radius " << this->radius << endl;

@@ -11,7 +11,7 @@
 
 #define MIN(x, y) ((x)>(y)?(y):(x))
 #define MAX(x, y) ((x)>(y)?(x):(y))
-#define MAXVALUE 5
+#define MAXVALUE 15
 #define THRESHOLDSTEP 0.1
 
 using namespace std;
@@ -72,9 +72,8 @@ void vote(int a, int b, int r, int maxA,
 	  (*votes)[i][j].resize(k+1);
 	  (*votes)[i][j][k] = 0;
 	}
-	if( i == 50 && j == 50){
-	}
 	(*votes)[i][j][k]++;
+	if((i == a) + (j == b) + (k == r) > 1) (*votes)[i][j][k]++;
 	if(i == a && j == b && k == r) (*votes)[i][j][k]++;
       }
     }
@@ -269,11 +268,13 @@ vector<Circle> findCircles(Image image, int numberOfCircles,
   multimap<double, Circle> circleMap;
   /* chose the winners  keep declining the threshold until we get 
      enough circles */
-  for(double threshold = MAXVALUE; 
+  double threshold;
+  for(threshold = MAXVALUE; 
       circleMap.size() < numberOfCircles && threshold > 0; 
       threshold -= THRESHOLDSTEP){
     circleMap = chooseWinners(&votes, threshold);
   }
+
   vector<Circle> circlesToReturn;
 
   /* if we got too many circles, cut out the ones with the lowest 
