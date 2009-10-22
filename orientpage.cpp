@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
   Point TBR0 = templateBottomCircles[0].getCenter();
   Point TBR1 = templateBottomCircles[1].getCenter();
 
-  Point TTL = Point((TTL0.getX() + TTL1.getX()/2),
+  Point TTL = Point((TTL0.getX() + TTL1.getX())/2,
 		    (TTL0.getY() + TTL1.getY())/2);
   Point TBR = Point((TBR0.getX() + TBR1.getX())/2 + 3*columns/4,
 		    (TBR0.getY() + TBR1.getY())/2 + rows - columns/4); 
@@ -189,7 +189,7 @@ int main(int argc, char *argv[]){
   Point RBR0 = rotatedBottomCircles[0].getCenter();
   Point RBR1 = rotatedBottomCircles[1].getCenter();
 
-  Point RTL = Point((RTL0.getX() + RTL1.getX()/2),
+  Point RTL = Point((RTL0.getX() + RTL1.getX())/2,
 		    (RTL0.getY() + RTL1.getY())/2);
   Point RBR = Point((RBR0.getX() + RBR1.getX())/2,
 		    (RBR0.getY() + RBR1.getY())/2 + 3*rows/4);
