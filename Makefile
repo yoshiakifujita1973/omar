@@ -2,7 +2,11 @@ INCLUDEPATH =
 MAGICKFLAGS = `Magick++-config --cppflags --cxxflags --ldflags --libs`
 C++ = g++
 
-all: circlefinder orientpage
+all: circlefinder orientpage marktest
+
+marktest: findmarks.o geometricPrimitives.o marktest.o
+	$(C++) -g $(MAGICKFLAGS) findmarks.o geometricPrimitives.o marktest.o \
+		-o marktest
 
 orientpage: orientpage.o hough.o geometricPrimitives.o
 	$(C++) -g $(MAGICKFLAGS) orientpage.o hough.o geometricPrimitives.o \
@@ -11,6 +15,14 @@ orientpage: orientpage.o hough.o geometricPrimitives.o
 circlefinder: circlefinder.o hough.o geometricPrimitives.o
 	$(C++) -g $(MAGICKFLAGS) circlefinder.o hough.o geometricPrimitives.o \
 		-o circlefinder
+
+marktest.o: marktest.cpp findmarks.hpp geometricPrimitives.hpp
+	$(C++) -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o marktest.o\
+		marktest.cpp
+
+findmarks.o: geometricPrimitives.hpp findmarks.cpp
+	$(C++) -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o findmarks.o \
+		findmarks.cpp
 
 orientpage.o: geometricPrimitives.hpp hough.hpp orientpage.cpp
 	$(C++) -g -c $(INCLUDEPATH) $(MAGICKFLAGS) -o orientpage.o \
