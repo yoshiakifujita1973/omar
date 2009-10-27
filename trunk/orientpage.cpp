@@ -14,10 +14,6 @@
 using namespace std;
 //using namespace Magick;
 
-//extern ostream cerr;
-//extern ostream cout;
-
-
 int main(int argc, char *argv[]){
   int minRadius = 10;
   int maxRadius = 0;
