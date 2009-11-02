@@ -16,8 +16,6 @@ using namespace std;
 
 int main(int argc, char *argv[]){
   int minRadius = 10;
-  int maxRadius = 0;
-  int numberOfCircles = 0;
   char *templatePage = NULL;
   char *rotatedPage = NULL;
   int c;

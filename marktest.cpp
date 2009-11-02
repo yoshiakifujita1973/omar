@@ -10,11 +10,7 @@
 
 
 int main(int argc, char *argv[]){
-  int minRadius = 0;
-  int maxRadius = 0;
-  int numberOfCircles = 0;
   char *filename = NULL;
-  int c;
 
   if(argc < 1){
     cerr << "Usage: " << endl;
@@ -41,6 +37,8 @@ int main(int argc, char *argv[]){
   image.strokeColor(Magick::Color("red"));
   image.strokeWidth(1);
   for(vector<Circle>::iterator it = marks.begin(); it != marks.end(); it++){
+    cout << it->getCenter().getX() << " " << it->getCenter().getY() << " "
+	 << it->getRadius() << endl;
     image.draw(it->toDrawable());
   }
 
