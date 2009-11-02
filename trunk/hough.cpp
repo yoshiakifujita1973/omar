@@ -53,7 +53,8 @@ vector<Point> getPoints( Image image ){
 
 
 /* vote for the circle given by a, b, and r.
- * vote twice for the circle a, b, r, and once for each of its neighbors
+ * vote four times for the circle a, b, r, twice for
+ * its direct neighbors and once for each of its diagonal neighbors
  * because we're using ints in a real word 
  */
 void vote(int a, int b, int r, int maxA, 
@@ -74,7 +75,7 @@ void vote(int a, int b, int r, int maxA,
 	}
 	(*votes)[i][j][k]++;
 	if((i == a) + (j == b) + (k == r) > 1) (*votes)[i][j][k]++;
-	if(i == a && j == b && k == r) (*votes)[i][j][k]++;
+        if(i == a && j == b && k == r) (*votes)[i][j][k] += 2;
       }
     }
   }

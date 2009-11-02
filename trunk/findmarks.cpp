@@ -20,20 +20,20 @@
 
 using namespace std;
 
-Circle cleararea(int i, int j, vector<vector< bool > > *markedPixels,
+Circle cleararea(unsigned i, unsigned j, vector<vector< bool > > *markedPixels,
 		 Magick::Image image){
   queue<Point> pointQueue;
   vector<Point> pointList;
   Magick::Color black = Magick::Color("black");
-  int columns = image.columns();
-  int rows = image.rows();
-  int sumX = 0;
-  int sumY = 0;
-  int numberPixels = 0;
-  int maxX = 0;
-  int minX = columns;
-  int maxY = 0;
-  int minY = rows;
+  unsigned columns = image.columns();
+  unsigned rows = image.rows();
+  unsigned sumX = 0;
+  unsigned sumY = 0;
+  unsigned numberPixels = 0;
+  unsigned maxX = 0;
+  unsigned minX = columns;
+  unsigned maxY = 0;
+  unsigned minY = rows;
 
   pointQueue.push(Point(i,j));
   pointList.push_back(Point(i,j));
@@ -42,8 +42,8 @@ Circle cleararea(int i, int j, vector<vector< bool > > *markedPixels,
   while(pointQueue.size() > 0){
     Point pointToCheck = pointQueue.front();
     pointQueue.pop();
-    int x = pointToCheck.getX();
-    int y = pointToCheck.getY();
+    unsigned x = pointToCheck.getX();
+    unsigned y = pointToCheck.getY();
     sumX += x;
     sumY += y;
     numberPixels++;
@@ -51,10 +51,10 @@ Circle cleararea(int i, int j, vector<vector< bool > > *markedPixels,
     maxY = MAX(y,maxY);
     minX = MIN(x,minX);
     minY = MIN(y,minY);
-    for(int k = x-1; k <= x+1; k++){
+    for(unsigned k = x-1; k <= x+1; k++){
       if((*markedPixels)[k].size() <= rows) 
 	(*markedPixels)[k].resize(rows+1);
-      for(int l = y-1; l <= y+1; l++){
+      for(unsigned l = y-1; l <= y+1; l++){
 	if(k > 0 && l > 0 
 	   && k < columns && l < rows 
 	   && (*markedPixels)[k][l] == false
@@ -86,8 +86,8 @@ Circle cleararea(int i, int j, vector<vector< bool > > *markedPixels,
 
 
 vector<Circle> findmarks(Magick::Image image){
-  int columns = image.columns();
-  int rows = image.rows();
+  unsigned columns = image.columns();
+  unsigned rows = image.rows();
   vector<vector< bool > > markedPixels(columns);
   Magick::Color black = Magick::Color("black");
   Magick::Image thresholdImage = image;
@@ -96,9 +96,9 @@ vector<Circle> findmarks(Magick::Image image){
   thresholdImage.display();
   vector<Circle> marks;
   
-  for(int i = 0; i < columns; i++){
+  for(unsigned i = 0; i < columns; i++){
     if(markedPixels.size() <= i) markedPixels.resize(i+1);
-    for(int j = 0; j < rows; j++){
+    for(unsigned j = 0; j < rows; j++){
       if(thresholdImage.pixelColor(i,j) == black){
 	if(markedPixels[i].size() <= j){
 	  markedPixels[i].resize(j+1);

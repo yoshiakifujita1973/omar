@@ -126,10 +126,10 @@ Line::Line(double slope, double intercept, int type = GP_LINE_CARTESIAN){
   if(type == GP_LINE_POLAR){
     this->theta = -(intercept - int(intercept / (2 * M_PI)) * 2 * M_PI - M_PI);
     this->r = slope;
-    this->m = -1/tan(theta);
-    if(sin(theta) > 0) this->b = this->r / sin(theta);
+    if(tan(theta) != 0) this->m = -1/tan(theta);
     this->sinTheta = sin(theta);
     this->cosTheta = cos(theta);
+    if(sinTheta != 0) this->b = this->r / sinTheta;
   }
 }
 
